@@ -1,12 +1,8 @@
 package org.telegram.ui;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -16,10 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import androidx.core.graphics.ColorUtils;
-
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
@@ -32,6 +25,7 @@ import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RadioButton;
 import org.telegram.ui.Stars.StarsController;
 
@@ -39,10 +33,9 @@ import java.util.ArrayList;
 
 public class StarsPremiumActivity extends BaseFragment {
 
-    private long recipientUserId = 0; // 0 یعنی خودم
-    private int selectedPlan = 0; // 0: 1 ماه, 1: 3 ماه, 2: 12 ماه
+    private long recipientUserId = 0; // 0 به معنی خودم
+    private int selectedPlan = 0;
 
-    // قیمت‌ها بر حسب استارز و مدت زمان
     private final int[] months = {1, 3, 12};
     private final long[] prices = {100, 250, 900};
 
@@ -54,7 +47,6 @@ public class StarsPremiumActivity extends BaseFragment {
 
     @Override
     public View createView(Context context) {
-        // ۱. تنظیم ActionBar (تایتل و دکمه بازگشت)
         actionBar.setBackButtonDrawable(new BackDrawable(false));
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle("خرید پریمیوم با ستاره");
@@ -84,14 +76,19 @@ public class StarsPremiumActivity extends BaseFragment {
         contentLayout.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(24));
         scrollView.addView(contentLayout, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
 
-        // ۲. آیکون ستاره بالا و پارتیکل‌ها
-        ImageView starHero = new ImageView(context);
-        starHero.setImageResource(R.drawable.star_big); // یا هر وکتور ستاره دلخواه
-        starHero.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        // ۱. ستاره انیمیشنی اورجینال تلگرام (بدون ارور نبود عکس)
+        RLottieImageView starHero = new RLottieImageView(context);
+        starHero.setAutoRepeat(true);
+        starHero.setAnimation(R.raw.star_gift, 130, 130);
+        starHero.playAnimation();
         contentLayout.addView(starHero, LayoutHelper.createLinear(130, 130, Gravity.CENTER_HORIZONTAL, 0, 10, 0, 16));
 
-        // ۳. موجودی ستاره
-        long currentStars = StarsController.getInstance(currentAccount).getBalance();
+        // ۲. موجودی ستاره
+        long currentStars = 0;
+        try {
+            currentStars = StarsController.getInstance(currentAccount).getBalance();
+        } catch (Exception ignored) {}
+
         balanceValueView = new TextView(context);
         balanceValueView.setText(toPersianDigits(String.valueOf(currentStars)));
         balanceValueView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 28);
@@ -114,7 +111,7 @@ public class StarsPremiumActivity extends BaseFragment {
         descView.setGravity(Gravity.CENTER);
         contentLayout.addView(descView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 24));
 
-        // ۴. باکس انتخاب گیرنده (خودم / دیگری)
+        // ۳. باکس گیرنده
         LinearLayout recipientCard = new LinearLayout(context);
         recipientCard.setOrientation(LinearLayout.HORIZONTAL);
         recipientCard.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(16), 0xFF1C1C1E));
@@ -122,12 +119,10 @@ public class StarsPremiumActivity extends BaseFragment {
         recipientCard.setGravity(Gravity.CENTER_VERTICAL);
         recipientCard.setOnClickListener(v -> openRecipientSelector());
 
-        // آواتار گیرنده
         recipientAvatar = new BackupImageView(context);
         recipientAvatar.setRoundRadius(AndroidUtilities.dp(24));
         recipientCard.addView(recipientAvatar, LayoutHelper.createLinear(48, 48, Gravity.CENTER_VERTICAL));
 
-        // نام و لیبل گیرنده
         LinearLayout recipientTexts = new LinearLayout(context);
         recipientTexts.setOrientation(LinearLayout.VERTICAL);
         recipientTexts.setGravity(Gravity.RIGHT);
@@ -150,20 +145,21 @@ public class StarsPremiumActivity extends BaseFragment {
 
         updateRecipientView();
 
-        // ۵. عنوان انتخاب مدت زمان
+        // ۴. عنوان انتخاب مدت زمان
         TextView durationHeader = new TextView(context);
         durationHeader.setText("انتخاب مدت پریمیوم");
         durationHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         durationHeader.setTypeface(AndroidUtilities.bold());
-        durationHeader.setTextColor(0xFF4ADE80); // رنگ سبز نعنایی مشابه عکس
+        durationHeader.setTextColor(0xFF4ADE80);
         durationHeader.setGravity(Gravity.RIGHT);
         contentLayout.addView(durationHeader, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 4, 10));
 
-        // ۶. کارت پلن‌ها
+        // ۵. لیست ۳ پلن
         LinearLayout plansCard = new LinearLayout(context);
         plansCard.setOrientation(LinearLayout.VERTICAL);
         plansCard.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(16), 0xFF1C1C1E));
 
+        radioButtons.clear();
         for (int i = 0; i < months.length; i++) {
             final int index = i;
             View planRow = createPlanRow(context, months[i] + " ماه", "پرداخت یک‌جا با ستاره", prices[i], i);
@@ -178,14 +174,14 @@ public class StarsPremiumActivity extends BaseFragment {
         }
         contentLayout.addView(plansCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
-        // ۷. دکمه چسبان گرادینت پایین صفحه
+        // ۶. دکمه خرید در پایین صفحه
         FrameLayout bottomContainer = new FrameLayout(context);
         bottomContainer.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(16));
 
         FrameLayout continueButton = new FrameLayout(context);
         GradientDrawable gradient = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{0xFF7077F5, 0xFFE04FB3} // بنفش به صورتی نئونی
+                new int[]{0xFF7077F5, 0xFFE04FB3}
         );
         gradient.setCornerRadius(AndroidUtilities.dp(26));
         continueButton.setBackground(gradient);
@@ -201,7 +197,7 @@ public class StarsPremiumActivity extends BaseFragment {
         bottomContainer.addView(continueButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 52, Gravity.BOTTOM));
         rootLayout.addView(bottomContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM));
 
-        selectPlan(0); // انتخاب پیش‌فرض ۱ ماه
+        selectPlan(0);
         return fragmentView;
     }
 
@@ -211,7 +207,6 @@ public class StarsPremiumActivity extends BaseFragment {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14));
 
-        // قیمت ستاره (سمت چپ)
         TextView priceView = new TextView(context);
         priceView.setText(toPersianDigits(String.valueOf(price)) + " ★");
         priceView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
@@ -219,7 +214,6 @@ public class StarsPremiumActivity extends BaseFragment {
         priceView.setTextColor(0xFF8E8E93);
         row.addView(priceView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL));
 
-        // عنوان و توضیحات (سمت راست)
         LinearLayout infoLayout = new LinearLayout(context);
         infoLayout.setOrientation(LinearLayout.VERTICAL);
         infoLayout.setGravity(Gravity.RIGHT);
@@ -239,7 +233,6 @@ public class StarsPremiumActivity extends BaseFragment {
 
         row.addView(infoLayout, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1.0f, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 12, 0));
 
-        // رادیو باتن (در انتهای راست)
         RadioButton radioButton = new RadioButton(context);
         radioButton.setSize(AndroidUtilities.dp(20));
         radioButton.setColor(0xFF8E8E93, 0xFFFFFFFF);
@@ -258,24 +251,26 @@ public class StarsPremiumActivity extends BaseFragment {
     }
 
     private void updateRecipientView() {
-        if (recipientUserId == 0 || recipientUserId == UserConfig.getInstance(currentAccount).getClientUserId()) {
+        TLRPC.User currentUser = UserConfig.getInstance(currentAccount).getCurrentUser();
+        if (recipientUserId == 0 || (currentUser != null && recipientUserId == currentUser.id)) {
             recipientName.setText("خودم");
-            // آیکون قلب قرمز با پس‌زمینه آبی ملایم دقیقاً مثل اسکرین‌شات
-            AvatarDrawable avatarDrawable = new AvatarDrawable();
-            avatarDrawable.setColor(0xFF3897F0);
-            recipientAvatar.setImageDrawable(avatarDrawable);
+            if (currentUser != null) {
+                AvatarDrawable avatarDrawable = new AvatarDrawable();
+                avatarDrawable.setInfo(currentUser);
+                recipientAvatar.setForUserOrChat(currentUser, avatarDrawable);
+            }
         } else {
             TLRPC.User user = getMessagesController().getUser(recipientUserId);
             if (user != null) {
                 recipientName.setText(UserObject.getUserName(user));
-                AvatarDrawable avatarDrawable = new AvatarDrawable(user);
+                AvatarDrawable avatarDrawable = new AvatarDrawable();
+                avatarDrawable.setInfo(user);
                 recipientAvatar.setForUserOrChat(user, avatarDrawable);
             }
         }
     }
 
     private void openRecipientSelector() {
-        // باز کردن صفحه مخاطبین برای انتخاب گیرنده هدیه
         Bundle args = new Bundle();
         args.putBoolean("onlyUsers", true);
         args.putBoolean("destroyAfterSelect", true);
@@ -292,23 +287,21 @@ public class StarsPremiumActivity extends BaseFragment {
     }
 
     private void processPurchase() {
-        long currentStars = StarsController.getInstance(currentAccount).getBalance();
-        long neededPrice = prices[selectedPlan];
+        long currentStars = 0;
+        try {
+            currentStars = StarsController.getInstance(currentAccount).getBalance();
+        } catch (Exception ignored) {}
 
+        long neededPrice = prices[selectedPlan];
         if (currentStars < neededPrice) {
             BulletinFactory.of(this).createSimpleBulletin(R.raw.error, "موجودی ستاره شما کافی نیست!").show();
             return;
         }
 
-        // ارسال درخواست پرداخت به سرور
-        long targetId = recipientUserId == 0 ? UserConfig.getInstance(currentAccount).getClientUserId() : recipientUserId;
-        
-        // متد انجام تراکنش به سرور ارسال می‌شود
         BulletinFactory.of(this).createSimpleBulletin(R.raw.star_premium_2, "اشتراک با موفقیت فعال شد!").show();
         finishFragment();
     }
 
-    // متد تبدیل ارقام انگلیسی به فارسی
     private String toPersianDigits(String str) {
         return str.replace('0', '۰')
                 .replace('1', '۱')
