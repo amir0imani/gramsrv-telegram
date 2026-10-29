@@ -3517,13 +3517,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } else {
                 statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
                 statusDrawable.center = true;
-                logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
-                logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
-                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
-                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                actionBar.setTitle(ssb, statusDrawable);
+
+
+                String appTitle = LocaleController.isRTL ? "کوآرک" : "Kuark";
+
+
+                actionBar.setTitle(appTitle, statusDrawable);
+                actionBar.setTitleColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+
+                if (actionBar.getTitleTextView() != null) {
+                    actionBar.getTitleTextView().setGravity(LocaleController.isRTL ? (Gravity.RIGHT | Gravity.CENTER_VERTICAL) : (Gravity.LEFT | Gravity.CENTER_VERTICAL));
+                }
+
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
+            }
             }
             if (folderId == 0) {
                 actionBar.setSupportsHolidayImage(true);
@@ -12111,9 +12118,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (dialogStoriesCell != null) {
                 dialogStoriesCell.updateColors();
             }
-            if (logoDrawable != null) {
-                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-            }
+            if (actionBar != null && !onlySelect && folderId == 0 && communityId == 0) {
+    actionBar.setTitleColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+}
             if (actionModeCloseView != null) {
                 actionModeCloseView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
                 actionModeCloseView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)));
