@@ -701,7 +701,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(UItem.asShadow(null));
 
         if (!getMessagesController().premiumFeaturesBlocked()) {
-            items.add(SettingCell.Factory.of(11, 0xFFB659FF, 0xFF617CFF, R.drawable.settings_premium, getString(R.string.TelegramPremium)));
+            items.add(SettingCell.Factory.of(11, 0xFFB659FF, 0xFF617CFF, R.drawable.settings_premium, LocaleController.isRTL ? "کوآرک پریمیوم" : "Kuark Premium"));
         }
         if (getMessagesController().starsPurchaseAvailable()) {
             StarsController c = StarsController.getInstance(currentAccount);
@@ -838,7 +838,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 break;
 
             case 11:
-                presentSettingFragment(new PremiumPreviewFragment("settings"));
+                presentSettingFragment(new StarsPremiumActivity());
                 break;
             case 12:
                 presentSettingFragment(new StarsIntroActivity());
