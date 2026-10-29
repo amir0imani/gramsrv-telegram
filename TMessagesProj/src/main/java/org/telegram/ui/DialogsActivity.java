@@ -3518,10 +3518,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
                 statusDrawable.center = true;
 
-
+                // تنظیم نام دوزبانه کوآرک / Kuark
                 String appTitle = LocaleController.isRTL ? "کوآرک" : "Kuark";
-
-
                 actionBar.setTitle(appTitle, statusDrawable);
                 actionBar.setTitleColor(getThemedColor(Theme.key_actionBarDefaultTitle));
 
@@ -3531,16 +3529,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
-            }
             if (folderId == 0) {
                 actionBar.setSupportsHolidayImage(true);
             }
         }
-        //if (!onlySelect || initialDialogsType == DIALOGS_TYPE_FORWARD) {
-            actionBar.setAddToContainer(false);
-            actionBar.setCastShadows(false);
-            actionBar.setClipContent(true);
-        //}
+
+        actionBar.setAddToContainer(false);
+        actionBar.setCastShadows(false);
+        actionBar.setClipContent(true);
+
         actionBar.setTitleActionRunnable(() -> {
             if (initialDialogsType != DIALOGS_TYPE_WIDGET) {
                 hideFloatingButton(false);
@@ -3563,7 +3560,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     maybeStartTracking = false;
                     return super.onInterceptTouchEvent(ev);
                 }
-
                 @Override
                 protected void onDefaultTabMoved() {
                     if (!getMessagesController().premiumFeaturesBlocked()) {
@@ -12118,9 +12114,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (dialogStoriesCell != null) {
                 dialogStoriesCell.updateColors();
             }
-            if (actionBar != null && !onlySelect && folderId == 0 && communityId == 0) {
-    actionBar.setTitleColor(getThemedColor(Theme.key_actionBarDefaultTitle));
-}
+            if (logoDrawable != null) {
+                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
+            }
             if (actionModeCloseView != null) {
                 actionModeCloseView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
                 actionModeCloseView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)));
