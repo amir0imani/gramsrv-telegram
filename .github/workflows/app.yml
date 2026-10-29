@@ -10,12 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Free Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-
       - name: Checkout Source
         uses: actions/checkout@v4
         with:
@@ -28,22 +22,20 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK & Licenses
+      - name: Setup Android SDK Licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Configure Gradle Memory
+      - name: Configure Gradle & Target Only ARM64
         run: |
           mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx6144m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
-          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx6144m -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
+          echo "android.injected.build.abi=arm64-v8a" >> ~/.gradle/gradle.properties
 
-      # بیلد سریع نسخه Debug برای پردازنده تمام گوشی‌های جدید (arm64-v8a)
-      - name: Build arm64 APK
+      - name: Build Debug APK
         run: |
           chmod +x gradlew
-          ./gradlew assembleAfatDebug -x lint -x test --stacktrace
+          ./gradlew assembleAfatDebug --stacktrace
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
