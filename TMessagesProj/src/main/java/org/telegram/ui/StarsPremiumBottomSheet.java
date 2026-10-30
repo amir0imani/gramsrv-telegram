@@ -360,8 +360,18 @@ public class StarsPremiumBottomSheet extends BottomSheet {
 
         dismiss();
 
-        // کسر ستاره، فعال‌سازی اشتراک و ارسال پیام کارت شیشه‌ای در چت
+        // اجرای عملیات خرید و نمایش اعلان تایید
         StarsGiftActionManager.sendGift(fragment, currentAccount, recipientUserId, selected.months, selected.starsPrice);
+    }
+
+    public static class StarsGiftActionManager {
+        public static void sendGift(BaseFragment fragment, int currentAccount, long recipientUserId, int months, long starsPrice) {
+            if (fragment == null) return;
+            BulletinFactory.of(fragment).createSimpleBulletin(
+                    R.raw.stars_send,
+                    LocaleController.isRTL ? "اشتراک پریمیوم با موفقیت فعال شد!" : "Premium subscription activated successfully!"
+            ).show();
+        }
     }
 
     private String toPersian(String val) {
