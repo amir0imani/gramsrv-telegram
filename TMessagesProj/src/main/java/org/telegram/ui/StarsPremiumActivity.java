@@ -7,7 +7,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -28,6 +27,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RadioButton;
 import org.telegram.ui.Stars.StarsController;
+import org.telegram.ui.Stars.StarsIntroActivity;
 
 import java.util.ArrayList;
 
@@ -76,26 +76,22 @@ public class StarsPremiumActivity extends BaseFragment {
         contentLayout.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(16), AndroidUtilities.dp(24));
         scrollView.addView(contentLayout, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
 
-        // ۱. ستاره انیمیشنی اورجینال تلگرام (بدون ارور نبود عکس)
+        // ۱. ستاره انیمیشنی لاتی اورجینال تلگرام
         RLottieImageView starHero = new RLottieImageView(context);
         starHero.setAutoRepeat(true);
-        starHero.setAnimation(R.raw.star_gift, 130, 130);
+        starHero.setAnimation(R.raw.star_premium_2, 130, 130);
         starHero.playAnimation();
         contentLayout.addView(starHero, LayoutHelper.createLinear(130, 130, Gravity.CENTER_HORIZONTAL, 0, 10, 0, 16));
 
-        // ۲. موجودی ستاره
-        long currentStars = 0;
-        try {
-            currentStars = StarsController.getInstance(currentAccount).getBalance();
-        } catch (Exception ignored) {}
-
+        // ۲. موجودی ستاره با وکتور رسمی
         balanceValueView = new TextView(context);
-        balanceValueView.setText(toPersianDigits(String.valueOf(currentStars)));
         balanceValueView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 28);
         balanceValueView.setTypeface(AndroidUtilities.bold());
         balanceValueView.setTextColor(0xFFFFFFFF);
         balanceValueView.setGravity(Gravity.CENTER);
         contentLayout.addView(balanceValueView);
+
+        updateBalance();
 
         TextView balanceLabel = new TextView(context);
         balanceLabel.setText("موجودی ستاره");
@@ -111,7 +107,7 @@ public class StarsPremiumActivity extends BaseFragment {
         descView.setGravity(Gravity.CENTER);
         contentLayout.addView(descView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 24));
 
-        // ۳. باکس گیرنده
+        // ۳. باکس انتخاب گیرنده
         LinearLayout recipientCard = new LinearLayout(context);
         recipientCard.setOrientation(LinearLayout.HORIZONTAL);
         recipientCard.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(16), 0xFF1C1C1E));
@@ -154,7 +150,7 @@ public class StarsPremiumActivity extends BaseFragment {
         durationHeader.setGravity(Gravity.RIGHT);
         contentLayout.addView(durationHeader, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 4, 10));
 
-        // ۵. لیست ۳ پلن
+        // ۵. لیست پلن‌ها با وکتور ستاره
         LinearLayout plansCard = new LinearLayout(context);
         plansCard.setOrientation(LinearLayout.VERTICAL);
         plansCard.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(16), 0xFF1C1C1E));
@@ -174,7 +170,7 @@ public class StarsPremiumActivity extends BaseFragment {
         }
         contentLayout.addView(plansCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
-        // ۶. دکمه خرید در پایین صفحه
+        // ۶. دکمه پرداخت با نمایش وکتور ستاره
         FrameLayout bottomContainer = new FrameLayout(context);
         bottomContainer.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(16));
 
@@ -207,11 +203,13 @@ public class StarsPremiumActivity extends BaseFragment {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14));
 
+        // نمایش قیمت با وکتور ستاره به جای کاراکتر ساده
         TextView priceView = new TextView(context);
-        priceView.setText(toPersianDigits(String.valueOf(price)) + " ★");
+        String priceText = toPersianDigits(String.valueOf(price)) + " *";
+        priceView.setText(StarsIntroActivity.replaceStarsWithPlain(priceText, 0.8f));
         priceView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         priceView.setTypeface(AndroidUtilities.bold());
-        priceView.setTextColor(0xFF8E8E93);
+        priceView.setTextColor(0xFFFFFFFF);
         row.addView(priceView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL));
 
         LinearLayout infoLayout = new LinearLayout(context);
@@ -247,7 +245,22 @@ public class StarsPremiumActivity extends BaseFragment {
         for (int i = 0; i < radioButtons.size(); i++) {
             radioButtons.get(i).setChecked(i == index, true);
         }
-        continueButtonText.setText("ادامه با " + toPersianDigits(String.valueOf(prices[selectedPlan])) + " ★");
+        // دکمه ادامه با وکتور ستاره
+        String btnText = "ادامه با " + toPersianDigits(String.valueOf(prices[selectedPlan])) + " *";
+        continueButtonText.setText(StarsIntroActivity.replaceStarsWithPlain(btnText, 0.85f));
+    }
+
+    private void updateBalance() {
+        long currentStars = 0;
+        try {
+            StarsController controller = StarsController.getInstance(currentAccount);
+            if (controller != null && controller.balance != null) {
+                currentStars = controller.balance.amount;
+            }
+        } catch (Exception ignored) {}
+
+        String balanceText = toPersianDigits(String.valueOf(currentStars)) + " *";
+        balanceValueView.setText(StarsIntroActivity.replaceStarsWithPlain(balanceText, 0.95f));
     }
 
     private void updateRecipientView() {
@@ -289,16 +302,19 @@ public class StarsPremiumActivity extends BaseFragment {
     private void processPurchase() {
         long currentStars = 0;
         try {
-            currentStars = StarsController.getInstance(currentAccount).getBalance();
+            StarsController controller = StarsController.getInstance(currentAccount);
+            if (controller != null && controller.balance != null) {
+                currentStars = controller.balance.amount;
+            }
         } catch (Exception ignored) {}
 
         long neededPrice = prices[selectedPlan];
         if (currentStars < neededPrice) {
-            BulletinFactory.of(this).createSimpleBulletin(R.raw.error, "موجودی ستاره شما کافی نیست!").show();
+            BulletinFactory.of(this).createErrorBulletin("موجودی ستاره شما کافی نیست!").show();
             return;
         }
 
-        BulletinFactory.of(this).createSimpleBulletin(R.raw.star_premium_2, "اشتراک با موفقیت فعال شد!").show();
+        BulletinFactory.of(this).createSimpleBulletin(R.raw.star_premium_2, (CharSequence) "اشتراک با موفقیت فعال شد!").show();
         finishFragment();
     }
 
