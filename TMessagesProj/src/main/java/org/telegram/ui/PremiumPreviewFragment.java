@@ -1441,8 +1441,8 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
             showAdsInfoRow = rowCount++;
         }
 
-        AndroidUtilities.updateViewVisibilityAnimated(buttonContainer, !getUserConfig().isPremium() || currentSubscriptionTier != null && currentSubscriptionTier.getMonths() < subscriptionTiers.get(selectedTierIndex).getMonths() && !forcePremium, 1f, false);
-
+        AndroidUtilities.updateViewVisibilityAnimated(buttonContainer, true, 1f, false);
+        
         int buttonHeight = buttonContainer.getVisibility() == View.VISIBLE ? dp(64) : 0;
         layoutManager.setAdditionalHeight(buttonHeight + statusBarHeight - dp(16));
         layoutManager.setMinimumLastViewHeight(buttonHeight);
@@ -2116,39 +2116,16 @@ public class PremiumPreviewFragment extends BaseFragment implements Notification
         if (premiumButtonView == null) {
             return;
         }
-        if (getUserConfig().isPremium() && currentSubscriptionTier != null && selectedTierIndex < subscriptionTiers.size() && subscriptionTiers.get(selectedTierIndex).getMonths() < currentSubscriptionTier.getMonths()) {
-            return;
-        }
-        if (LocaleController.isRTL) {
-            animated = false;
-        }
-        if (BuildVars.IS_BILLING_UNAVAILABLE && selectedTierIndex < subscriptionTiers.size()) {
-            premiumButtonView.setButton(getPremiumButtonText(currentAccount, subscriptionTiers.get(selectedTierIndex)), null, animated);
-            buttonContainerInternal.setOnClickListener(v -> buyPremium(this));
-            return;
-        }
-        if (!BuildVars.useInvoiceBilling() && (!BillingController.getInstance().isReady() || subscriptionTiers.isEmpty() || selectedTierIndex >= subscriptionTiers.size() || subscriptionTiers.get(selectedTierIndex).googlePlayProductDetails == null)) {
-            premiumButtonView.setButton(getString(R.string.Loading), null, animated);
-            buttonContainerInternal.setOnClickListener(v -> {});
-            premiumButtonView.setFlickerDisabled(true);
-            return;
-        }
-        if (!subscriptionTiers.isEmpty() && selectedTierIndex < subscriptionTiers.size()) {
-            premiumButtonView.setButton(getPremiumButtonText(currentAccount, subscriptionTiers.get(selectedTierIndex)), null, animated);
-            buttonContainerInternal.setOnClickListener(v -> {
-                SubscriptionTier tier = subscriptionTiers.get(selectedTierIndex);
-                BillingFlowParams.SubscriptionUpdateParams updateParams = null;
-                if (currentSubscriptionTier != null && currentSubscriptionTier.subscriptionOption != null && currentSubscriptionTier.subscriptionOption.transaction != null) {
-                    updateParams = BillingFlowParams.SubscriptionUpdateParams.newBuilder()
-                            .setOldPurchaseToken(BillingController.getInstance().getLastPremiumToken())
-//                            .setReplaceProrationMode(BillingFlowParams.ProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE)
-                            .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE)
-                            .build();
-                }
-                buyPremium(this, tier, "settings", true, updateParams);
-            });
-            premiumButtonView.setFlickerDisabled(false);
-        }
+
+        // ۱. تنظیم متن دکمه به صورت دو زبانه (فارسی: خرید اشتراک / انگلیسی: Subscribe)
+        String customBtnText = LocaleController.isRTL ? "خرید اشتراک" : "Subscribe";
+        premiumButtonView.setButton(customBtnText, null, false);
+        premiumButtonView.setFlickerDisabled(false);
+
+        // ۲. با کلیک روی دکمه یا باکس آن، باتم‌شیت ستاره‌ای باز می‌شود
+        buttonContainerInternal.setOnClickListener(v -> {
+            new StarsPremiumBottomSheet(getContext(), this, currentAccount).show();
+        });
     }
 
     @Override
