@@ -262,11 +262,7 @@ public class AndroidUtilities {
 
     public static Typeface bold() {
         if (mediumTypeface == null) {
-            if (SharedConfig.useSystemBoldFont && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                mediumTypeface = Typeface.create(null, 500, false);
-            } else {
-                mediumTypeface = getTypeface(TYPEFACE_ROBOTO_MEDIUM);
-            }
+            mediumTypeface = getTypeface(TYPEFACE_ROBOTO_MEDIUM);
         }
         return mediumTypeface;
     }
@@ -2390,25 +2386,55 @@ public class AndroidUtilities {
         return result;
     }
 
+    private static String mapCustomFontAsset(String assetPath) {
+        if (assetPath == null) {
+            return null;
+        }
+        switch (assetPath) {
+            case "fonts/rregular.ttf":
+            case "fonts/ritalic.ttf":
+                return "fonts/Vazirmatn-UI-Regular.ttf";
+            case "fonts/rmedium.ttf":
+            case "fonts/rmediumitalic.ttf":
+                return "fonts/Vazirmatn-UI-Medium.ttf";
+            case "fonts/rbold.ttf":
+            case "fonts/rextrabold.ttf":
+            case "fonts/rcondensedbold.ttf":
+                return "fonts/Vazirmatn-UI-Bold.ttf";
+            case "fonts/rlight.ttf":
+                return "fonts/Vazirmatn-UI-Light.ttf";
+            default:
+                return assetPath;
+        }
+    }
+
+    public static Typeface getRegularTypeface() {
+        return getTypeface("fonts/rregular.ttf");
+    }
+
     public static Typeface getTypeface(String assetPath) {
         synchronized (typefaceCache) {
             if (!typefaceCache.containsKey(assetPath)) {
                 try {
+                    String mappedPath = mapCustomFontAsset(assetPath);
+                    boolean isVazir = mappedPath != null && mappedPath.contains("Vazirmatn");
                     Typeface t;
                     if (Build.VERSION.SDK_INT >= 26) {
-                        Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), assetPath);
-                        if (assetPath.contains("rextrabold")) {
-                            builder.setWeight(800);
-                        }
-                        if (assetPath.contains("medium") || assetPath.contains("rbold")) {
-                            builder.setWeight(700);
-                        }
-                        if (assetPath.contains("italic")) {
-                            builder.setItalic(true);
+                        Typeface.Builder builder = new Typeface.Builder(ApplicationLoader.applicationContext.getAssets(), mappedPath);
+                        if (!isVazir) {
+                            if (assetPath.contains("rextrabold")) {
+                                builder.setWeight(800);
+                            }
+                            if (assetPath.contains("medium") || assetPath.contains("rbold")) {
+                                builder.setWeight(700);
+                            }
+                            if (assetPath.contains("italic")) {
+                                builder.setItalic(true);
+                            }
                         }
                         t = builder.build();
                     } else {
-                        t = Typeface.createFromAsset(ApplicationLoader.applicationContext.getAssets(), assetPath);
+                        t = Typeface.createFromAsset(ApplicationLoader.applicationContext.getAssets(), mappedPath);
                     }
                     typefaceCache.put(assetPath, t);
                 } catch (Exception e) {
