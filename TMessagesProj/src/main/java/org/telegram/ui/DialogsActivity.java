@@ -3519,12 +3519,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 statusDrawable.center = true;
 
                 // تنظیم نام دوزبانه کوآرک / Kuark
+                // تنظیم نام دوزبانه کوآرک / Kuark
                 String appTitle = LocaleController.isRTL ? "کوآرک" : "Kuark";
                 actionBar.setTitle(appTitle, statusDrawable);
                 actionBar.setTitleColor(getThemedColor(Theme.key_actionBarDefaultTitle));
 
                 if (actionBar.getTitleTextView() != null) {
-                    actionBar.getTitleTextView().setGravity(LocaleController.isRTL ? (Gravity.RIGHT | Gravity.CENTER_VERTICAL) : (Gravity.LEFT | Gravity.CENTER_VERTICAL));
+                    actionBar.getTitleTextView().setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
                 }
 
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
