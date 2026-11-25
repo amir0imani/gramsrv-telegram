@@ -6,13 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       build_type:
-        description: 'نوع بیلد (Debug سریع برای تست، Release برای انتشار نهایی)'
+        description: 'نوع بیلد'
         required: true
-        default: 'Debug'
+        default: 'Release'
         type: choice
         options:
-          - Debug
           - Release
+          - Debug
 
 jobs:
   build:
@@ -47,9 +47,9 @@ jobs:
             TMessagesProj/build/intermediates/cxx
             TMessagesProj_App/.cxx
             TMessagesProj_App/build/intermediates/cxx
-          key: cxx-arm64-${{ inputs.build_type || 'Debug' }}-${{ hashFiles('TMessagesProj/jni/**', '**/CMakeLists.txt') }}
+          key: cxx-arm64-${{ inputs.build_type || 'Release' }}-${{ hashFiles('TMessagesProj/jni/**', '**/CMakeLists.txt') }}
           restore-keys: |
-            cxx-arm64-${{ inputs.build_type || 'Debug' }}-
+            cxx-arm64-${{ inputs.build_type || 'Release' }}-
 
       - name: Setup Android SDK & Licenses
         run: |
@@ -60,20 +60,20 @@ jobs:
           fi
           yes | $SDKMANAGER --licenses || true
 
-      - name: Configure Gradle Memory & Speed
+      - name: Configure Gradle Memory & Cache
         run: |
           mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx4096m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
-          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx5120m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
+          echo "org.gradle.parallel=false" >> ~/.gradle/gradle.properties
           echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.workers.max=4" >> ~/.gradle/gradle.properties
+          echo "org.gradle.workers.max=2" >> ~/.gradle/gradle.properties
 
       - name: Build arm64-v8a APK
         run: |
           chmod +x gradlew
-          BUILD_TASK="assembleAfat${{ inputs.build_type || 'Debug' }}"
+          BUILD_TASK="assembleAfat${{ inputs.build_type || 'Release' }}"
           echo "Running ./gradlew $BUILD_TASK"
-          ./gradlew "$BUILD_TASK" -PabiList=arm64-v8a --stacktrace
+          ./gradlew "$BUILD_TASK" -PabiList=arm64-v8a --no-daemon --stacktrace
 
       - name: Find APK files
         run: |
@@ -83,6 +83,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Kuark-arm64-v8a-${{ inputs.build_type || 'Debug' }}
+          name: Kuark-arm64-v8a-${{ inputs.build_type || 'Release' }}
           path: "**/build/outputs/apk/**/*.apk"
           retention-days: 7
