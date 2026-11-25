@@ -2703,26 +2703,30 @@ public class LocaleController {
         return formatter;
     }
 
-    public static boolean isPersian() {
-        LocaleController instance = getInstance();
-        if (instance.currentLocaleInfo != null) {
-            String s = instance.currentLocaleInfo.shortName;
-            String p = instance.currentLocaleInfo.pluralLangCode;
-            String n = instance.currentLocaleInfo.nameEnglish;
+    private boolean isPersianInternal() {
+        if (currentLocaleInfo != null) {
+            String s = currentLocaleInfo.shortName;
+            String p = currentLocaleInfo.pluralLangCode;
+            String n = currentLocaleInfo.nameEnglish;
             if (s != null && (s.equals("fa") || s.startsWith("fa_"))) return true;
             if (p != null && (p.equals("fa") || p.startsWith("fa_"))) return true;
             if (n != null && n.toLowerCase().contains("persian")) return true;
         }
-        Locale l = instance.currentLocale;
+        Locale l = currentLocale;
         if (l != null) {
             String lang = l.getLanguage();
             if ("fa".equalsIgnoreCase(lang) || "pes".equalsIgnoreCase(lang)) return true;
         }
-        String langName = instance.localeValues != null ? instance.localeValues.get("LanguageName") : null;
+        String langName = localeValues != null ? localeValues.get("LanguageName") : null;
         if (langName != null && (langName.contains("فارسی") || langName.contains("پارسی"))) {
             return true;
         }
         return false;
+    }
+
+    public static boolean isPersian() {
+        LocaleController instance = Instance;
+        return instance != null && instance.isPersianInternal();
     }
 
     private static String toPersianDigits(String s) {
