@@ -184,8 +184,9 @@ public class BotCommandsMenuView extends View {
             }
 
             if (expandProgress > 0) {
+                float lineLeft = menuTextLayout.getLineCount() > 0 ? menuTextLayout.getLineLeft(0) : 0;
                 canvas.save();
-                canvas.translate(AndroidUtilities.dp(34), (getMeasuredHeight() - menuTextLayout.getHeight()) / 2f);
+                canvas.translate(AndroidUtilities.dp(34) - lineLeft, (getMeasuredHeight() - menuTextLayout.getHeight()) / 2f);
                 menuTextLayout.draw(canvas);
                 canvas.restore();
             }
@@ -245,10 +246,6 @@ public class BotCommandsMenuView extends View {
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-//            FlickerLoadingView flickerLoadingView =  new FlickerLoadingView(parent.getContext());
-//            flickerLoadingView.setIsSingleCell(true);
-//            flickerLoadingView.setViewType(FlickerLoadingView.BOTS_MENU_TYPE);
-//            return new RecyclerListView.Holder(flickerLoadingView);
             BotCommandView view = new BotCommandView(parent.getContext());
             view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             return new RecyclerListView.Holder(view);
@@ -260,7 +257,7 @@ public class BotCommandsMenuView extends View {
             final String command = newResult.get(position);
             final boolean ephemeral = newResultEphemeral.get(position);
 
-            if (ephemeral /*&& false*/) {
+            if (ephemeral) {
                 final ColoredImageSpan coloredImageSpan = new ColoredImageSpan(R.drawable.mini_ephemeral_hidden_14);
                 coloredImageSpan.setColorKey(Theme.key_windowBackgroundWhiteGrayText3);
                 coloredImageSpan.setTopOffset(1);
@@ -337,6 +334,7 @@ public class BotCommandsMenuView extends View {
                 }
             };
             NotificationCenter.listenEmojiLoading(description);
+            description.setTypeface(AndroidUtilities.getRegularTypeface());
             description.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             description.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             description.setTag(Theme.key_windowBackgroundWhiteBlackText);
@@ -345,6 +343,7 @@ public class BotCommandsMenuView extends View {
             addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL, 0, 0, AndroidUtilities.dp(8), 0));
 
             command = new TextView(context);
+            command.setTypeface(AndroidUtilities.getRegularTypeface());
             command.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             command.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
             command.setTag(Theme.key_windowBackgroundWhiteGrayText);
