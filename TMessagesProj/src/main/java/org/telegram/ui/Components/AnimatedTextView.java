@@ -174,10 +174,7 @@ public class AnimatedTextView extends View {
             this.preserveIndex = preserveIndex;
             this.startFromEnd = startFromEnd;
             this.enforceByLetter = enforceByLetter;
-        }
-
-        public void setAllowCancel(boolean allowCancel) {
-            this.allowCancel = allowCancel;
+            textPaint.setTypeface(AndroidUtilities.getRegularTypeface());
         }
 
         public void setEllipsizeByGradient(boolean enabled) {
@@ -1027,7 +1024,7 @@ public class AnimatedTextView extends View {
         }
 
         public void setTypeface(Typeface typeface) {
-            textPaint.setTypeface(typeface);
+            textPaint.setTypeface(typeface != null ? typeface : AndroidUtilities.getRegularTypeface());
         }
 
         public void setGravity(int gravity) {
