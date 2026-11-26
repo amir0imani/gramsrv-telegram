@@ -145,6 +145,9 @@ public class AnimatedTextView extends View {
 
         private Runnable onAnimationFinishListener;
         private boolean allowCancel;
+        public void setAllowCancel(boolean allowCancel) {
+            this.allowCancel = allowCancel;
+        }
         public boolean ignoreRTL;
         public boolean updateAll;
 
